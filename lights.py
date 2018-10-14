@@ -59,3 +59,31 @@ class Light:
     def _call_hue_api(self, path, method, data=None):
         print('calling', method, Light._HUE_BASE_URL + path, data)
         return getattr(requests, method)(Light._HUE_BASE_URL + path, data=json.dumps(data) if (data is not None) else None) 
+
+class LightSet:
+
+    def __init__(self):
+        self.lights = []
+
+    def add_light(self, light):
+        self.lights.append(light)
+
+    def all_off(self):
+        for light in self.lights:
+            light.turn_off()
+
+    def all_on(self):
+        for light in self.lights:
+            light.turn_on()
+
+    def announce_arrival(self, device):
+        print("lights: announce user arrival", device)
+        if device == 'Zaks-iPhone':
+            print('zak')
+            loop = asyncio.get_running_loop()
+            for light in self.lights:
+                loop.create_task(light.party(seconds = 2, count = 2))
+        elif device == 'Louise’s iPhone':
+            self.all_on()
+
+        pass

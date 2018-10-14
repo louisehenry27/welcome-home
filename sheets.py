@@ -37,12 +37,23 @@ class Sheet:
             raise('No data found.')
         else:
             connection_df = pd.DataFrame(values, columns = ['OriginalTimestamp', 'Device', 'Status'])
+            self._date_format(connection_df,datecolumn=0)
             return connection_df
 
     def get_last_record(self):
         connection_df = self.get_data()[-1:]
-        self._date_format(connection_df,0)
         return connection_df.reset_index(drop=True)
+
+    def get_records_since_index(self,previous_index):
+
+        if previous_index is None:
+            previous_index = 0 
+
+        connection_df = self.get_data()
+        print('connection_df',connection_df.index)
+        print('previous_index',previous_index)
+        return connection_df[connection_df.index > previous_index]
+
 
         
 

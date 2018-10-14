@@ -1,46 +1,72 @@
+import asyncio
+import functools
 from lights import Light
-from sheets import Sheet
-from time import sleep
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
-
-datasource = f'{os.environ["GOOGLE_SHEET_KEY"]}'
-
-    # dictionary to store current status 
-person_status = {
-    'Louise\'s iPhone':'Connected',
-    'Zaks-iPhone':'Connected',
-}
-
-while True:
-    last_record = Sheet(datasource).get_last_record()
-    now = datetime.now()
-    previous_timestamp = datetime.now() - timedelta(minutes = 2)
-    date_last_record = last_record['Timestamp'][0]
-    if previous_timestamp < date_last_record < now:
-        print('update lights')
-        # for device, status in person_status.items():
-        #     if last_record['Device'][0] == device and person_status[device] != last_record['Status'][0]:
-        #         person_status[device] = last_record['Status'][0]
-        #         if last_record['Status'] == 'Connected':
-        #             # lights on
-        #         elif last_record['Status'] =='Disconnected':
-        #             # lights off if both disconnected
-        #     else:
-        #         print('fail')
-    else:
-        print("no update")
-        
+from poll_events import poll_event
 
 
-
-
+tv = Light(12)
 lamp = Light(1)
 
-# lamp.set_colour(Light.RANDOM)
-# sleep(0.5)
-# lamp.turn_off()
-# sleep(1.5)
-lamp.turn_on()
 
-# print(lamp.get_state())
+async def periodic(loop, period):
+    prev_time = datetime.now()
+
+    while True:
+        print('running periodic @', datetime.now())
+
+        # loop.create_task(tv.party(seconds = 5, count = 8))
+        # loop.create_task(lamp.party(seconds = 2, count = 8))
+
+        loop.create_task(poll_event(loop, prev_time))
+
+        prev_time = datetime.now()
+        await asyncio.sleep(period)
+
+                                  
+async def exit():                                              
+    loop = asyncio.get_event_loop()                      
+    print("Stop")                                        
+    loop.stop() 
+
+    print("Shutdown complete ...")    
+
+                                      
+async def cancel_async(task):                                              
+    task.cancel()
+ 
+if __name__ == '__main__':
+
+    my_event_loop = asyncio.get_event_loop()
+    try:
+        print('task creation started')
+
+        periodic_task = my_event_loop.create_task(periodic(my_event_loop, 10))
+
+        # my_event_loop.run_until_complete(asyncio.wait(tasks))
+        my_event_loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+
+        try:
+            print("Shutting down")
+
+            pending = asyncio.Task.all_tasks()
+
+            print('waiting for any pending tasks to complete...') 
+
+            # Run loop until tasks done:
+            my_event_loop.run_until_complete(asyncio.gather(*pending))
+        except KeyboardInterrupt:
+            print("Cancelling tasks due to user sigterm ;)")
+
+            for task in asyncio.Task.all_tasks():
+                task.cancel()
+
+        finally:
+                 
+            asyncio.ensure_future(exit())   
+
+
