@@ -40,9 +40,9 @@ class Sheet:
             self._date_format(connection_df,datecolumn=0)
             return connection_df
 
-    def get_last_record(self):
-        connection_df = self.get_data()[-1:]
-        return connection_df.reset_index(drop=True)
+    # def get_last_record(self):
+    #     connection_df = self.get_data()[-1:]
+    #     return connection_df.reset_index(drop=True)
 
     def get_records_since_index(self,previous_index):
 
@@ -50,8 +50,8 @@ class Sheet:
             previous_index = 0 
 
         connection_df = self.get_data()
-        print('connection_df',connection_df.index)
-        print('previous_index',previous_index)
+        # print('connection_df',connection_df.index)
+        # print('previous_index',previous_index)
         return connection_df[connection_df.index > previous_index]
 
 
